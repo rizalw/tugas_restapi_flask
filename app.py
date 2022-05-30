@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
+from sqlalchemy import delete
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///database.db"
@@ -64,24 +66,23 @@ def index():
 
 @app.route('/insert/penulis/', methods=['POST'])
 def insertPenulis():
-    if request.method == "POST":
-        new_input = request.get_json()
-        Penulis_name = new_input['Penulis_name']
-        Penulis_gender = new_input['Penulis_gender']
-        Penulis_address = new_input['Penulis_address']
-        Penulis_number = new_input['Penulis_number']
-        new_penulis = Penulis(Penulis_name, Penulis_gender,
-                              Penulis_address, Penulis_number)
-        try:
-            db.session.add(new_penulis)
-            db.session.commit()
-            return jsonify({
-                'output': "Success"
-            })
-        except:
-            return jsonify({
-                'output': 'Failed'
-            })
+    new_input = request.get_json()
+    Penulis_name = new_input['Penulis_name']
+    Penulis_gender = new_input['Penulis_gender']
+    Penulis_address = new_input['Penulis_address']
+    Penulis_number = new_input['Penulis_number']
+    new_penulis = Penulis(Penulis_name, Penulis_gender,
+                          Penulis_address, Penulis_number)
+    try:
+        db.session.add(new_penulis)
+        db.session.commit()
+        return jsonify({
+            'output': "Success"
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
 
 
 @app.route('/get/penulis/', methods=["GET"])
@@ -100,6 +101,23 @@ def getPenulis():
         "output": data_penulis_new
     })
 
+
+@app.route('/delete/penulis/', methods=["POST"])
+def deletePenulis():
+    new_input = request.get_json()
+    id_penulis = new_input['id']
+    delete_data = Penulis.query.get_or_404(id_penulis)
+    try:
+        db.session.delete(delete_data)
+        db.session.commit()
+        return jsonify({
+            'output': "Success",
+            "comments" : "User {} has been deleted".format(delete_data.Penulis_name)
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
 
 if __name__ == "__main__":
     app.run(debug=True)
