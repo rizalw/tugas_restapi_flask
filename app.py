@@ -119,5 +119,28 @@ def deletePenulis():
             'output': 'Failed'
         })
 
+# Niatnya, pas mau update data, yang perlu dikirim cuman data yang pengen diubah aja, gak semua kolom
+@app.route('/update/penulis/<int:id>', methods = ["POST"])
+def updatePenulis(id):
+    penulis = Penulis.query.get_or_404(id)
+    update_data = request.get_json()
+    for key, val in update_data.items():
+        if key not in dir(penulis):
+            return
+        else:
+            # epic sih ini, baru tau bisa kayak gini, biar flexible buat manggil nama method berdasarkan variable di val
+            setattr(penulis, key, val)
+            # setattr temennya getattr
+    try:
+        db.session.commit()
+        return jsonify({
+            'output': "Success",
+            "comments" : "User {} has been updated".format(penulis.Penulis_name)
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })    
+
 if __name__ == "__main__":
     app.run(debug=True)
