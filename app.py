@@ -2,8 +2,6 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-from sqlalchemy import delete
-
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///database.db"
@@ -51,7 +49,6 @@ class Buku(db.Model):
         self.author_id = author_id
         self.buku_title = buku_title
 
-
 @app.route("/", methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
@@ -63,7 +60,7 @@ def index():
             'output': 'ini post'
         }), 201
 
-
+# ============================================ AREA PENULIS ==============================================================
 @app.route('/insert/penulis/', methods=['POST'])
 def insertPenulis():
     new_input = request.get_json()
@@ -141,6 +138,24 @@ def updatePenulis(id):
         return jsonify({
             'output': 'Failed'
         })    
+
+# ============================================ Area Buku ==============================================================
+@app.route('/insert/buku/', methods = ['POST'])
+def insertBuku():
+    new_input = request.get_json()
+    author_id = new_input['author_id']
+    buku_title = new_input['buku_title']
+    new_buku = Buku(author_id, buku_title)
+    try:
+        db.session.add(new_buku)
+        db.session.commit()
+        return jsonify({
+            'output': "Success"
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
 
 if __name__ == "__main__":
     app.run(debug=True)
