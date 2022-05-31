@@ -1,4 +1,3 @@
-from curses.ascii import US
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
