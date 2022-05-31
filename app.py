@@ -157,5 +157,19 @@ def insertBuku():
             'output': 'Failed'
         })
 
+@app.route('/get/buku/', methods=["GET"])
+def getBuku():
+    data_buku = Buku.query.order_by(Buku.id).all()
+    data_buku_new = {}
+    for buku in data_buku:
+        data_buku_new[buku.id] = {
+            'author_id': buku.author_id,
+            'buku_title': buku.buku_title
+        }
+
+    return jsonify({
+        "output": data_buku_new
+    })
+
 if __name__ == "__main__":
     app.run(debug=True)
