@@ -1,3 +1,4 @@
+from curses.ascii import US
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -49,6 +50,7 @@ class Buku(db.Model):
         self.author_id = author_id
         self.buku_title = buku_title
 
+
 @app.route("/", methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
@@ -61,6 +63,8 @@ def index():
         }), 201
 
 # ============================================ AREA PENULIS ==============================================================
+
+
 @app.route('/insert/penulis/', methods=['POST'])
 def insertPenulis():
     new_input = request.get_json()
@@ -109,7 +113,7 @@ def deletePenulis():
         db.session.commit()
         return jsonify({
             'output': "Success",
-            "comments" : "User {} has been deleted".format(delete_data.Penulis_name)
+            "comments": "User {} has been deleted".format(delete_data.Penulis_name)
         })
     except:
         return jsonify({
@@ -117,7 +121,9 @@ def deletePenulis():
         })
 
 # Niatnya, pas mau update data, yang perlu dikirim cuman data yang pengen diubah aja, gak semua kolom
-@app.route('/update/penulis/<int:id>', methods = ["POST"])
+
+
+@app.route('/update/penulis/<int:id>', methods=["POST"])
 def updatePenulis(id):
     penulis = Penulis.query.get_or_404(id)
     update_data = request.get_json()
@@ -132,15 +138,17 @@ def updatePenulis(id):
         db.session.commit()
         return jsonify({
             'output': "Success",
-            "comments" : "User {} has been updated".format(penulis.Penulis_name)
+            "comments": "User {} has been updated".format(penulis.Penulis_name)
         })
     except:
         return jsonify({
             'output': 'Failed'
-        })    
+        })
 
 # ============================================ Area Buku ==============================================================
-@app.route('/insert/buku/', methods = ['POST'])
+
+
+@app.route('/insert/buku/', methods=['POST'])
 def insertBuku():
     new_input = request.get_json()
     author_id = new_input['author_id']
@@ -157,6 +165,7 @@ def insertBuku():
             'output': 'Failed'
         })
 
+
 @app.route('/get/buku/', methods=["GET"])
 def getBuku():
     data_buku = Buku.query.order_by(Buku.id).all()
@@ -171,7 +180,8 @@ def getBuku():
         "output": data_buku_new
     })
 
-@app.route('/update/buku/<int:id>', methods = ["POST"])
+
+@app.route('/update/buku/<int:id>', methods=["POST"])
 def updateBuku(id):
     buku = Buku.query.get_or_404(id)
     update_data = request.get_json()
@@ -186,12 +196,13 @@ def updateBuku(id):
         db.session.commit()
         return jsonify({
             'output': "Success",
-            "comments" : "Book Data '{}' has been updated".format(buku.buku_title)
+            "comments": "Book Data '{}' has been updated".format(buku.buku_title)
         })
     except:
         return jsonify({
             'output': 'Failed'
-        })  
+        })
+
 
 @app.route('/delete/buku/', methods=["POST"])
 def deleteBuku():
@@ -203,12 +214,94 @@ def deleteBuku():
         db.session.commit()
         return jsonify({
             'output': "Success",
-            "comments" : "Book data '{}' has been deleted".format(delete_data.buku_title)
+            "comments": "Book data '{}' has been deleted".format(delete_data.buku_title)
         })
     except:
         return jsonify({
             'output': 'Failed'
         })
+
+# ============================================ Area User ==============================================================
+
+
+@app.route('/insert/user/', methods=['POST'])
+def insertUser():
+    new_input = request.get_json()
+    user_name = new_input['user_name']
+    user_gender = new_input['user_gender']
+    user_address = new_input['user_address']
+    user_number = new_input['user_number']
+    new_user = User(user_name, user_gender,
+                          user_address, user_number)
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({
+            'output': "Success"
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
+
+
+@app.route('/get/user/', methods=["GET"])
+def getUser():
+    data_user = User.query.order_by(User.id).all()
+    data_user_new = {}
+    for user in data_user:
+        data_user_new[user.id] = {
+            'user_name': User.user_name,
+            'user_gender': User.user_gender,
+            'user_address': User.user_address,
+            'user_number': User.user_number,
+        }
+
+    return jsonify({
+        "output": data_user_new
+    })
+
+
+@app.route('/delete/user/', methods=["POST"])
+def deleteUser():
+    new_input = request.get_json()
+    id_user = new_input['id']
+    delete_data = User.query.get_or_404(id_user)
+    try:
+        db.session.delete(delete_data)
+        db.session.commit()
+        return jsonify({
+            'output': "Success",
+            "comments": "User {} has been deleted".format(delete_data.user_name)
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
+
+# Niatnya, pas mau update data, yang perlu dikirim cuman data yang pengen diubah aja, gak semua kolom
+@app.route('/update/user/<int:id>', methods=["POST"])
+def updateUser(id):
+    user = user.query.get_or_404(id)
+    update_data = request.get_json()
+    for key, val in update_data.items():
+        if key not in dir(user):
+            return
+        else:
+            # epic sih ini, baru tau bisa kayak gini, biar flexible buat manggil nama method berdasarkan variable di val
+            setattr(user, key, val)
+            # setattr temennya getattr
+    try:
+        db.session.commit()
+        return jsonify({
+            'output': "Success",
+            "comments": "User {} has been updated".format(user.Penulis_name)
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
+
 
 if __name__ == "__main__":
     app.run(debug=True)
