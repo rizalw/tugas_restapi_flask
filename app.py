@@ -15,6 +15,7 @@ class User(db.Model):
     user_address = db.Column(db.String(255), nullable=True)
     user_number = db.Column(db.String(15), nullable=True)
     date_created = db.Column(db.DateTime, default=datetime.now)
+    Peminjaman = db.relationship('Peminjaman', backref='user', lazy=True)
 
     def __init__(self, user_name, user_gender, user_address, user_number):
         self.user_name = user_name
@@ -41,14 +42,22 @@ class Penulis(db.Model):
 
 class Buku(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    author_id = db.Column(db.Integer, db.ForeignKey(
-        'penulis.id'), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('penulis.id'), nullable=False)
     buku_title = db.Column(db.String(100), nullable=False)
+    Peminjaman = db.relationship('Peminjaman', backref='buku', lazy=True)
 
     def __init__(self, author_id, buku_title):
         self.author_id = author_id
         self.buku_title = buku_title
 
+class Peminjaman(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    buku_id = db.Column(db.Integer, db.ForeignKey('buku.id'), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.now)
+    def __init__(self, user_id, buku_id):
+        self.user_id = user_id
+        self.buku_id = buku_id
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -222,7 +231,6 @@ def deleteBuku():
 
 # ============================================ Area User ==============================================================
 
-
 @app.route('/insert/user/', methods=['POST'])
 def insertUser():
     new_input = request.get_json()
@@ -301,6 +309,23 @@ def updateUser(id):
             'output': 'Failed'
         })
 
+# ============================================ Area Peminjaman ==============================================================
+@app.route('/insert/peminjaman', methods = ["POST"])
+def insertPeminjaman():
+    new_data = request.get_json()
+    user_id = new_data['user_id']
+    buku_id = new_data['buku_id']
+    new_peminjaman = Peminjaman(user_id, buku_id)
+    try:
+        db.session.add(new_peminjaman)
+        db.session.commit()
+        return jsonify({
+            'output': "Success"
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
 
 if __name__ == "__main__":
     app.run(debug=True)
