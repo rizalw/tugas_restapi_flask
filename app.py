@@ -193,5 +193,22 @@ def updateBuku(id):
             'output': 'Failed'
         })  
 
+@app.route('/delete/buku/', methods=["POST"])
+def deleteBuku():
+    new_input = request.get_json()
+    id_buku = new_input['id']
+    delete_data = Buku.query.get_or_404(id_buku)
+    try:
+        db.session.delete(delete_data)
+        db.session.commit()
+        return jsonify({
+            'output': "Success",
+            "comments" : "Book data '{}' has been deleted".format(delete_data.buku_title)
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
+
 if __name__ == "__main__":
     app.run(debug=True)
