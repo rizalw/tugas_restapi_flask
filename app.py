@@ -171,5 +171,27 @@ def getBuku():
         "output": data_buku_new
     })
 
+@app.route('/update/buku/<int:id>', methods = ["POST"])
+def updateBuku(id):
+    buku = Buku.query.get_or_404(id)
+    update_data = request.get_json()
+    for key, val in update_data.items():
+        if key not in dir(buku):
+            return
+        else:
+            # epic sih ini, baru tau bisa kayak gini, biar flexible buat manggil nama method berdasarkan variable di val
+            setattr(buku, key, val)
+            # setattr temennya getattr
+    try:
+        db.session.commit()
+        return jsonify({
+            'output': "Success",
+            "comments" : "Book Data '{}' has been updated".format(buku.buku_title)
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })  
+
 if __name__ == "__main__":
     app.run(debug=True)
