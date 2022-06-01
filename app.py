@@ -349,7 +349,22 @@ def getPeminjaman():
         "output": data_peminjaman_new
     })
 
-
+@app.route("/delete/peminjaman", methods=["DELETE"])
+def deletePeminjaman():
+    new_input = request.get_json()
+    id_peminjaman = new_input['id']
+    delete_data = Peminjaman.query.get_or_404(id_peminjaman)
+    try:
+        db.session.delete(delete_data)
+        db.session.commit()
+        return jsonify({
+            'output': "Success",
+            "comments": "Peminjaman {} has been deleted".format(delete_data.id)
+        })
+    except:
+        return jsonify({
+            'output': 'Failed'
+        })
 
 if __name__ == "__main__":
     app.run(debug=True)
