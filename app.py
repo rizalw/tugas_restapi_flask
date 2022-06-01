@@ -42,7 +42,8 @@ class Penulis(db.Model):
 
 class Buku(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    author_id = db.Column(db.Integer, db.ForeignKey('penulis.id'), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey(
+        'penulis.id'), nullable=False)
     buku_title = db.Column(db.String(100), nullable=False)
     Peminjaman = db.relationship('Peminjaman', backref='buku', lazy=True)
 
@@ -50,14 +51,17 @@ class Buku(db.Model):
         self.author_id = author_id
         self.buku_title = buku_title
 
+
 class Peminjaman(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     buku_id = db.Column(db.Integer, db.ForeignKey('buku.id'), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.now)
+
     def __init__(self, user_id, buku_id):
         self.user_id = user_id
         self.buku_id = buku_id
+
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -111,7 +115,7 @@ def getPenulis():
     })
 
 
-@app.route('/delete/penulis/', methods=["POST"])
+@app.route('/delete/penulis/', methods=["DELETE"])
 def deletePenulis():
     new_input = request.get_json()
     id_penulis = new_input['id']
@@ -128,10 +132,9 @@ def deletePenulis():
             'output': 'Failed'
         })
 
+
 # Niatnya, pas mau update data, yang perlu dikirim cuman data yang pengen diubah aja, gak semua kolom
-
-
-@app.route('/update/penulis/<int:id>', methods=["POST"])
+@app.route('/update/penulis/<int:id>', methods=["PUT"])
 def updatePenulis(id):
     penulis = Penulis.query.get_or_404(id)
     update_data = request.get_json()
@@ -189,7 +192,7 @@ def getBuku():
     })
 
 
-@app.route('/update/buku/<int:id>', methods=["POST"])
+@app.route('/update/buku/<int:id>', methods=["PUT"])
 def updateBuku(id):
     buku = Buku.query.get_or_404(id)
     update_data = request.get_json()
@@ -212,7 +215,7 @@ def updateBuku(id):
         })
 
 
-@app.route('/delete/buku/', methods=["POST"])
+@app.route('/delete/buku/', methods=["DELETE"])
 def deleteBuku():
     new_input = request.get_json()
     id_buku = new_input['id']
@@ -231,6 +234,7 @@ def deleteBuku():
 
 # ============================================ Area User ==============================================================
 
+
 @app.route('/insert/user/', methods=['POST'])
 def insertUser():
     new_input = request.get_json()
@@ -239,7 +243,7 @@ def insertUser():
     user_address = new_input['user_address']
     user_number = new_input['user_number']
     new_user = User(user_name, user_gender,
-                          user_address, user_number)
+                    user_address, user_number)
     try:
         db.session.add(new_user)
         db.session.commit()
@@ -258,18 +262,18 @@ def getUser():
     data_user_new = {}
     for user in data_user:
         data_user_new[user.id] = {
-            'user_name': User.user_name,
-            'user_gender': User.user_gender,
-            'user_address': User.user_address,
-            'user_number': User.user_number,
+            'user_name': user.user_name,
+            'user_gender': user.user_gender,
+            'user_address': user.user_address,
+            'user_number': user.user_number,
         }
-
+    print(data_user_new)
     return jsonify({
         "output": data_user_new
     })
 
 
-@app.route('/delete/user/', methods=["POST"])
+@app.route('/delete/user/', methods=["DELETE"])
 def deleteUser():
     new_input = request.get_json()
     id_user = new_input['id']
@@ -286,10 +290,11 @@ def deleteUser():
             'output': 'Failed'
         })
 
+
 # Niatnya, pas mau update data, yang perlu dikirim cuman data yang pengen diubah aja, gak semua kolom
-@app.route('/update/user/<int:id>', methods=["POST"])
+@app.route('/update/user/<int:id>', methods=["PUT"])
 def updateUser(id):
-    user = user.query.get_or_404(id)
+    user = User.query.get_or_404(id)
     update_data = request.get_json()
     for key, val in update_data.items():
         if key not in dir(user):
@@ -302,7 +307,7 @@ def updateUser(id):
         db.session.commit()
         return jsonify({
             'output': "Success",
-            "comments": "User {} has been updated".format(user.Penulis_name)
+            "comments": "User '{}' has been updated".format(user.user_name)
         })
     except:
         return jsonify({
@@ -310,7 +315,9 @@ def updateUser(id):
         })
 
 # ============================================ Area Peminjaman ==============================================================
-@app.route('/insert/peminjaman', methods = ["POST"])
+
+
+@app.route('/insert/peminjaman', methods=["POST"])
 def insertPeminjaman():
     new_data = request.get_json()
     user_id = new_data['user_id']
@@ -326,6 +333,23 @@ def insertPeminjaman():
         return jsonify({
             'output': 'Failed'
         })
+
+
+@app.route("/get/peminjaman", methods=["GET"])
+def getPeminjaman():
+    data_peminjaman = Peminjaman.query.order_by(Peminjaman.id).all()
+    data_peminjaman_new = {}
+    for peminjaman in data_peminjaman:
+        data_peminjaman_new[peminjaman.id] = {
+            'user_id': peminjaman.user_id,
+            'buku_id': peminjaman.buku_id,
+    }
+    print(data_peminjaman_new)
+    return jsonify({
+        "output": data_peminjaman_new
+    })
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
